@@ -1,21 +1,47 @@
 ﻿@page "/"
 @page "/index"
 
+@using PizzaStoreModels
+
+@inject HttpClient http
+
 <h1>Choose Customer</h1>
 <form>
     <div class="form-group m-2">
         <label class="control-label">Customer:</label>
         <select class="form-control" @bind="CustomerId">
             <option value="">Select a customer...</option>
-            <option value="1">John Doe</option>
-            <option value="2">Jane Doe</option>
+            @foreach(var customer in Customers)
+            {
+                <option value="@customer.Id">@customer.FullName</option>
+            })
         </select>
     </div>
     <div class="form-group m-2">
-        <a class="btn btn-primary" href="/pointofsale/@CustomerId">Go</a>
+        <a class="btn btn-primary" 
+            href="/pointofsale/@CustomerId"
+            @onclick="SetAllowNavigate"
+            @onclick:preventDefault="AllowNavigate"
+        >Go</a>
     </div>
 </form>
 
 @code{
     public string? CustomerId { get; set; }
+
+    public bool AllowNavigate { get; set; } = false;
+
+    public List<CustomerViewModel>? Customers { get; set; } = new List<CustomerViewModel>();
+
+    public void SetAllowNavigate()
+    {
+        AllowNavigate = string.IsNullOrWhiteSpace(CustomerId);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Customers = await http.GetFromJsonAsync<List<CustomerViewModel>>("api/Customers");
+
+        await base.OnInitializedAsync();
+    }
 }
